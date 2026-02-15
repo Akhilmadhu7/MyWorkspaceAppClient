@@ -1,6 +1,6 @@
-import axios from "axios";
+import axios, {Axios} from "axios";
 
-export const httpGet = async ({url, headers, params}) => {
+export const httpGet = async ({url, headers = {}, params = {}}) => {
     
     headers = {
         ...headers,
@@ -23,13 +23,7 @@ export const httpPost = async ({url, data, headers, }) => {
         "Content-Type": "application/json"
     }
 
-    try{
+    return await axios.post(url, data, {headers})
 
-        const response = await axios.post(url, data, {headers});
-        console.log("POST response:", response.data);
-        return response;
-
-    } catch (error) {
-        console.error("POST error:", error.response ? error.response.data : error.message); 
-    }
+    
 }
