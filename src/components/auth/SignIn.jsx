@@ -1,11 +1,16 @@
 import { useState } from "react";
-import { Input } from "../ui/input";
+import { Input } from "../../ui/input";
 import { Link, useNavigate } from "react-router";
-import { httpPost } from "../api/httpMethods";
-import airx from "../../public/airx.png";
+import { httpPost, httpGet } from "../../api/httpMethods";
+import airx from "../../../public/airx.png";
+import {setCredentials} from "../../store/authSlice";
+import { useSelector, useDispatch } from "react-redux";
 
 export const SignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const user = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch();
+
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     username: "",
@@ -35,7 +40,7 @@ export const SignIn = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     const isValid = validateForm();
@@ -44,37 +49,95 @@ export const SignIn = () => {
       return;
     }
     console.log("validation completed.");
-    httpPost({
-      url: `${API_BASE_URL}v1/auth/login`,
-      data: formData,
-    })
-      .then((response) => {
-        console.log("Login successful:", response.data);
-        setIsLoading(false);
-        navigate("/signup");
-        // Handle successful login, e.g., store token, redirect, etc.
+
+    try{
+      const authResponse = await httpPost({
+        url: `${API_BASE_URL}v1/auth/login`,
+        data: formData,
       })
-      .catch((error) => {
-        const status_code = error.response.status;
+      
+      const data = authResponse?.data || {};
+      console.log("Login successful:", data);
+      const accessToken = data?.data?.access_token || "";
+      const refreshToken = data?.data?.refresh_token || "";
+      const userId = data?.data?.user_id || "";
+      const tenantId = data?.data?.tenant_id || "";
+      console.log("accessToken:", accessToken);
+      const tokens = {
+        accessToken,
+        refreshToken
+      }
+      const userResponse = await httpGet({
+          url:`${API_BASE_URL}v1/users/${userId}`,
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "X-Tenant-Id": tenantId,
+          }
+        })
+        
+      console.log("User details:", userResponse);
+      const userDetails = {
+        userId,
+        userFirstName: userResponse?.data?.data?.first_name || "",
+        userLastName: userResponse?.data?.data?.last_name || "",
+        userEmail: userResponse?.data?.data?.email || "",
+        userImageUrl: userResponse?.data?.data?.image_url || "",
+      }
+      
+      const userRole = {
+        roleId: userResponse?.data?.data?.role?.role_id || "",
+        roleName: userResponse?.data?.data?.role?.role_name || ""
+      }
+      const tenantDetails = {
+        tenantId
+      }
+    
+      dispatch(setCredentials({
+        ...userDetails,
+        ...tenantDetails,
+        ...userRole,
+        ...tokens
+
+      }))
+      navigate("/dashboard");
+    }catch(errors){
+      console.error("Login failed:", errors.response);
+      const status_code = errors.response.status || 500;
+      const error = errors?.response?.data?.detail || "An unknown error occurred.";
         console.log("status code:", status_code);
         if (status_code == 403) {
-          const newErrors = { username: error.response.data.detail };
+          const newErrors = { username: error};
           setErrors(newErrors);
         }
-        if (status_code == 422) {
-          const errors = error.response.data.detail;
-          console.error("errors", errors);
+        else if (status_code == 422) {
+          // const errors = error.response.data.detail;
+          console.error("errors", error);
           const newErrors = {};
-          for (const item of errors) {
+          for (const item of error) {
+            console.log("error item:", item);
             const errorLocation = item?.loc || "unknown";
             newErrors[errorLocation[1]] = item?.msg || "Field required.";
           }
           setErrors(newErrors);
         }
-        setIsLoading(false);
-        console.error("Login failed:", error.response);
-        // Handle login failure, e.g., show error message to user
-      });
+        else if (status_code == 404){
+          console.error("API endpoint not found. Please check the URL and try again.");
+          // const errors = error?.response?.data?.detail || "An unknown error occurred.";
+          const newErrors = { username: error };
+          setErrors(newErrors);
+        }
+        else if (status_code == 400){
+          console.error("Bad request. Please check the submitted data and try again.");
+          // const errors = error?.response?.data?.detail || "An unknown error occurred.";
+          const newErrors = { username: error };
+          setErrors(newErrors);
+        }
+        else {
+          console.log("")
+          setErrors({username:"An uknown error occurred."})
+        }
+      setIsLoading(false);
+    }
   };
 
   return (
