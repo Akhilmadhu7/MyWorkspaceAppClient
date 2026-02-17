@@ -43,6 +43,7 @@ export const httpGet = async ({ url, headers = {}, params = {} }) => {
 export const httpPost = async ({ url, data, headers }) => {
   headers = {
     ...headers,
+    ...getAuthHeaders(),
     accept: "application/json",
     "Content-Type": "application/json",
   };

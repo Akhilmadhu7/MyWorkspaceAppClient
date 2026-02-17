@@ -1,4 +1,4 @@
-import { SideBarButton } from "../ui/SideBarButton";
+import { SideBarButton } from "./ui/SideBarButton";
 
 export const Sidebar = () => {
   return (

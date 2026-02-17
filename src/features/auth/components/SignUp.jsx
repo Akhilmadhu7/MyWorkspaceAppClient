@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import {Input} from "../../ui/input";
-import {httpGet} from "../../api/httpMethods";
+import {Input} from "../../../components/ui/input";
+import {httpGet} from "../../../utils/httpMethods";
 import {Link} from "react-router";
 
 export default function SignupForm() {
