@@ -6,7 +6,7 @@ import { authAPI } from "../../../api/AuthApi";
 import { userAPI } from "../../../api/UserApi";
 import { useLocation } from "react-router";
 import toast from "react-hot-toast";
-import handleErrorResponses from "../../../api/he/handleErrorResponses";
+import handleErrorResponses from "../../../api/handleErrorResponses";
 
 export const useSignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
