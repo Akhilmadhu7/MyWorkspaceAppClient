@@ -6,7 +6,7 @@ import { authAPI } from "../../../api/AuthApi";
 import { userAPI } from "../../../api/UserApi";
 import { useLocation } from "react-router";
 import toast from "react-hot-toast";
-import handleErrorResponses  from "../../../api/he/handleErrorResponses";
+import handleErrorResponses from "../../../api/he/handleErrorResponses";
 
 export const useSignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -95,13 +95,13 @@ export const useSignIn = () => {
           ...tokens,
         }),
       );
-      navigate(redirectPath, {replace:true});
+      navigate(redirectPath, { replace: true });
       toast.success("Successfully signed in!");
     } catch (errors) {
       console.error("Login failed:", errors.response);
-      const errorMessage = handleErrorResponses({ errors});
+      const errorMessage = handleErrorResponses({ errors });
       setIsLoading(false);
-      
+
       if (typeof errorMessage === "object") {
         for (const key in errorMessage) {
           toast.error(`${key}: ${errorMessage[key]}`);
@@ -109,8 +109,6 @@ export const useSignIn = () => {
       } else {
         toast.error(errorMessage || "Login failed. Please try again.");
       }
-
-      
     }
   };
   return [isLoading, formData, validationErrors, handleChange, handleSubmit];
