@@ -1,23 +1,23 @@
-import {useState} from "react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
-import {setAuthCredentials} from "../../../store/authSlice";
+import { setAuthCredentials } from "../../../store/authSlice";
 import { authAPI } from "../../../api/AuthApi";
-import {userAPI} from "../../../api/UserApi"
-
+import { userAPI } from "../../../api/UserApi";
+import { useLocation } from "react-router";
 
 export const useSignIn = () => {
-const [isLoading, setIsLoading] = useState(false);
-  const user = useSelector((state) => state.auth.user);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
-
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     username: "",
     password: "",
   });
 
-  const navigate = useNavigate();
+  const redirectPath = location?.state?.from?.pathName || "/dashboard";
 
   const validateForm = () => {
     const newErrors = {};
@@ -48,10 +48,9 @@ const [isLoading, setIsLoading] = useState(false);
     }
     console.log("validation completed.");
 
-    try{
+    try {
+      const authResponse = await authAPI.login("login", formData);
 
-      const authResponse = await authAPI.login("login",formData)
-      
       const data = authResponse?.data || {};
       console.log("Login successful:", data);
       const accessToken = data?.data?.access_token || "";
@@ -61,14 +60,14 @@ const [isLoading, setIsLoading] = useState(false);
       console.log("accessToken:", accessToken);
       const tokens = {
         accessToken,
-        refreshToken
-      }
+        refreshToken,
+      };
 
       const userResponse = await userAPI.getUserById(userId, {
         Authorization: `Bearer ${accessToken}`,
         "X-Tenant-Id": tenantId,
-      })
-        
+      });
+
       console.log("User details:", userResponse);
       const userDetails = {
         userId,
@@ -76,62 +75,64 @@ const [isLoading, setIsLoading] = useState(false);
         userLastName: userResponse?.data?.data?.last_name || "",
         userEmail: userResponse?.data?.data?.email || "",
         userImageUrl: userResponse?.data?.data?.image_url || "",
-      }
-      
+      };
+
       const userRole = {
         roleId: userResponse?.data?.data?.role?.role_id || "",
-        roleName: userResponse?.data?.data?.role?.role_name || ""
-      }
+        roleName: userResponse?.data?.data?.role?.role_name || "",
+      };
       const tenantDetails = {
-        tenantId
-      }
-    
-      dispatch(setAuthCredentials({
-        ...userDetails,
-        ...tenantDetails,
-        ...userRole,
-        ...tokens
+        tenantId,
+      };
 
-      }))
-      navigate("/dashboard");
-    }catch(errors){
+      dispatch(
+        setAuthCredentials({
+          ...userDetails,
+          ...tenantDetails,
+          ...userRole,
+          ...tokens,
+        }),
+      );
+      navigate(redirectPath, {replace:true});
+    } catch (errors) {
       console.error("Login failed:", errors.response);
       const status_code = errors.response.status || 500;
-      const error = errors?.response?.data?.detail || "An unknown error occurred.";
-        console.log("status code:", status_code);
-        if (status_code == 403) {
-          const newErrors = { username: error};
-          setErrors(newErrors);
+      const error =
+        errors?.response?.data?.detail || "An unknown error occurred.";
+      console.log("status code:", status_code);
+      if (status_code == 403) {
+        const newErrors = { username: error };
+        setErrors(newErrors);
+      } else if (status_code == 422) {
+        // const errors = error.response.data.detail;
+        console.error("errors", error);
+        const newErrors = {};
+        for (const item of error) {
+          console.log("error item:", item);
+          const errorLocation = item?.loc || "unknown";
+          newErrors[errorLocation[1]] = item?.msg || "Field required.";
         }
-        else if (status_code == 422) {
-          // const errors = error.response.data.detail;
-          console.error("errors", error);
-          const newErrors = {};
-          for (const item of error) {
-            console.log("error item:", item);
-            const errorLocation = item?.loc || "unknown";
-            newErrors[errorLocation[1]] = item?.msg || "Field required.";
-          }
-          setErrors(newErrors);
-        }
-        else if (status_code == 404){
-          console.error("API endpoint not found. Please check the URL and try again.");
-          // const errors = error?.response?.data?.detail || "An unknown error occurred.";
-          const newErrors = { username: error };
-          setErrors(newErrors);
-        }
-        else if (status_code == 400){
-          console.error("Bad request. Please check the submitted data and try again.");
-          // const errors = error?.response?.data?.detail || "An unknown error occurred.";
-          const newErrors = { username: error };
-          setErrors(newErrors);
-        }
-        else {
-          console.log("")
-          setErrors({username:"An uknown error occurred."})
-        }
+        setErrors(newErrors);
+      } else if (status_code == 404) {
+        console.error(
+          "API endpoint not found. Please check the URL and try again.",
+        );
+        // const errors = error?.response?.data?.detail || "An unknown error occurred.";
+        const newErrors = { username: error };
+        setErrors(newErrors);
+      } else if (status_code == 400) {
+        console.error(
+          "Bad request. Please check the submitted data and try again.",
+        );
+        // const errors = error?.response?.data?.detail || "An unknown error occurred.";
+        const newErrors = { username: error };
+        setErrors(newErrors);
+      } else {
+        console.log("");
+        setErrors({ username: "An uknown error occurred." });
+      }
       setIsLoading(false);
     }
   };
   return [isLoading, formData, errors, handleChange, handleSubmit];
-}
+};

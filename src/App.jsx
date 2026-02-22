@@ -6,6 +6,7 @@ import { Provider } from 'react-redux';
 import store, {persistedStore} from './store/store'
 import { PersistGate } from 'redux-persist/integration/react';
 import Publicroutes from "../src/routes/PublicRoutes";
+import ProtectedRoutes from './routes/ProtectedRoutes';
 
 function App() {
 
@@ -23,7 +24,10 @@ function App() {
             } 
           />
           <Route path='/signup' element={<SignUpPage />} />
-          <Route path='/dashboard' element={<Dashboard />} />
+
+          <Route element={<ProtectedRoutes />}>
+            <Route path='/dashboard' element={<Dashboard />} />
+          </Route>
         </Routes>
       </PersistGate>
     </Provider>
