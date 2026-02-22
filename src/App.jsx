@@ -3,17 +3,29 @@ import { BrowserRouter, Routes, Route } from 'react-router';
 import {SignInPage} from "./Pages/Signin";
 import {Dashboard} from "./Pages/dashboard";
 import { Provider } from 'react-redux';
-import store from './store/store'
+import store, {persistedStore} from './store/store'
+import { PersistGate } from 'redux-persist/integration/react';
+import Publicroutes from "../src/routes/PublicRoutes";
+
 function App() {
 
   return (
     <BrowserRouter>
     <Provider store = {store } >
-      <Routes>
-        <Route path='/signup' element={<SignUpPage />} />
-        <Route path='/signin' element={<SignInPage />} />
-        <Route path='/dashboard' element={<Dashboard />} />
-      </Routes>
+      <PersistGate loading={<div>Loading...</div>} persistor={persistedStore}>
+        <Routes>
+          <Route 
+            path='/signin' 
+            element={
+              <Publicroutes >
+                <SignInPage />
+              </Publicroutes>
+            } 
+          />
+          <Route path='/signup' element={<SignUpPage />} />
+          <Route path='/dashboard' element={<Dashboard />} />
+        </Routes>
+      </PersistGate>
     </Provider>
     </BrowserRouter>
   )
