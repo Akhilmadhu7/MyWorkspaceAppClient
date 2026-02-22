@@ -1,7 +1,7 @@
 import {useState} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
-import { setCredentials } from "../../../store/authSlice";
+import {setAuthCredentials} from "../../../store/authSlice";
 import { authAPI } from "../../../api/AuthApi";
 import {userAPI} from "../../../api/UserApi"
 
@@ -86,7 +86,7 @@ const [isLoading, setIsLoading] = useState(false);
         tenantId
       }
     
-      dispatch(setCredentials({
+      dispatch(setAuthCredentials({
         ...userDetails,
         ...tenantDetails,
         ...userRole,

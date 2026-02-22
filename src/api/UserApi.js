@@ -6,3 +6,4 @@ export const userAPI = {
     getUserById: (endpoint, headers={}) => 
         httpGet({url: `${USERBASE}${endpoint}`, headers})
 }
+
