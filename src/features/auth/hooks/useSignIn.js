@@ -6,13 +6,14 @@ import { authAPI } from "../../../api/AuthApi";
 import { userAPI } from "../../../api/UserApi";
 import { useLocation } from "react-router";
 import toast from "react-hot-toast";
+import handleErrorResponses  from "../../../api/he/handleErrorResponses";
 
 export const useSignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const [errors, setErrors] = useState({});
+  const [validationErrors, setValidationErrors] = useState({});
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -29,7 +30,7 @@ export const useSignIn = () => {
       newErrors.password = "password required.";
     }
 
-    setErrors(newErrors);
+    setValidationErrors(newErrors);
 
     return Object.keys(newErrors)?.length == 0;
   };
@@ -98,43 +99,19 @@ export const useSignIn = () => {
       toast.success("Successfully signed in!");
     } catch (errors) {
       console.error("Login failed:", errors.response);
-      const status_code = errors.response.status || 500;
-      const error =
-        errors?.response?.data?.detail || "An unknown error occurred.";
-      console.log("status code:", status_code);
-      if (status_code == 403) {
-        const newErrors = { username: error };
-        setErrors(newErrors);
-      } else if (status_code == 422) {
-        // const errors = error.response.data.detail;
-        console.error("errors", error);
-        const newErrors = {};
-        for (const item of error) {
-          console.log("error item:", item);
-          const errorLocation = item?.loc || "unknown";
-          newErrors[errorLocation[1]] = item?.msg || "Field required.";
-        }
-        setErrors(newErrors);
-      } else if (status_code == 404) {
-        console.error(
-          "API endpoint not found. Please check the URL and try again.",
-        );
-        // const errors = error?.response?.data?.detail || "An unknown error occurred.";
-        const newErrors = { username: error };
-        setErrors(newErrors);
-      } else if (status_code == 400) {
-        console.error(
-          "Bad request. Please check the submitted data and try again.",
-        );
-        // const errors = error?.response?.data?.detail || "An unknown error occurred.";
-        const newErrors = { username: error };
-        setErrors(newErrors);
-      } else {
-        console.log("");
-        setErrors({ username: "An uknown error occurred." });
-      }
+      const errorMessage = handleErrorResponses({ errors});
       setIsLoading(false);
+      
+      if (typeof errorMessage === "object") {
+        for (const key in errorMessage) {
+          toast.error(`${key}: ${errorMessage[key]}`);
+        }
+      } else {
+        toast.error(errorMessage || "Login failed. Please try again.");
+      }
+
+      
     }
   };
-  return [isLoading, formData, errors, handleChange, handleSubmit];
+  return [isLoading, formData, validationErrors, handleChange, handleSubmit];
 };
