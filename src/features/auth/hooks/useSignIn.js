@@ -5,6 +5,7 @@ import { setAuthCredentials } from "../../../store/authSlice";
 import { authAPI } from "../../../api/AuthApi";
 import { userAPI } from "../../../api/UserApi";
 import { useLocation } from "react-router";
+import toast from "react-hot-toast";
 
 export const useSignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -94,6 +95,7 @@ export const useSignIn = () => {
         }),
       );
       navigate(redirectPath, {replace:true});
+      toast.success("Successfully signed in!");
     } catch (errors) {
       console.error("Login failed:", errors.response);
       const status_code = errors.response.status || 500;

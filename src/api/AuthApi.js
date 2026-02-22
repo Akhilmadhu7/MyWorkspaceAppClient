@@ -6,9 +6,9 @@ export const authAPI = {
   login: (endpoint, credentials, headers={}) =>
     httpPost({ url: `${BASE}${endpoint}`, data: credentials, headers }),
 
-  logout: (endpoint) =>
-    httpPost({ url: `${BASE}${endpoint}` }),
+  logout: (headers={}) =>
+    httpPost({ url: `${BASE}logout`}, headers),
 
-  refreshToken: (endpoint, refreshToken, headers) =>
-    httpPost({ url: `${BASE}${endpoint}`, data: { refresh_token: refreshToken }, headers }),
+  refreshToken: (refreshToken, headers) =>
+    httpPost({ url: `${BASE}refresh`, data: { refresh_token: refreshToken }, headers }),
 };

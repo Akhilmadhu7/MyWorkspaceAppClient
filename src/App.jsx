@@ -7,6 +7,7 @@ import store, {persistedStore} from './store/store'
 import { PersistGate } from 'redux-persist/integration/react';
 import Publicroutes from "../src/routes/PublicRoutes";
 import ProtectedRoutes from './routes/ProtectedRoutes';
+import {Toaster} from "react-hot-toast"
 
 function App() {
 
@@ -14,6 +15,7 @@ function App() {
     <BrowserRouter>
     <Provider store = {store } >
       <PersistGate loading={<div>Loading...</div>} persistor={persistedStore}>
+        <Toaster position="top-right" />
         <Routes>
           <Route 
             path='/signin' 
