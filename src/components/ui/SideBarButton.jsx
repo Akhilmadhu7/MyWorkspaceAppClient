@@ -4,7 +4,7 @@ export const SideBarButton = ({ component, text, to }) => {
   return (
     <Link
       to={to}
-      className="flex items-center mt-5 px-4 py-2 text-gray-700 bg-gray-100 rounded-md dark:bg-gray-800 dark:text-gray-200"
+      className="flex items-center mt-5 px-4 py-2 text-[#060d6a] bg-white rounded-md dark:bg-white dark:text-[#060d6a] hover:bg-white dark:hover:bg-gray-400 transition-colors duration-200"
     >
       {component ? (
         component
@@ -29,3 +29,5 @@ export const SideBarButton = ({ component, text, to }) => {
     </Link>
   );
 };
+
+
